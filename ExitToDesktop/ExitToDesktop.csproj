@@ -1,0 +1,141 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1" InitialTargets="CheckDependencyPaths">
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>true</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DefaultItemExcludes>packages/**</DefaultItemExcludes>
+        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
+        <PathMap>$(AppOutputBase)=.\</PathMap>
+    </PropertyGroup>
+
+    <!-- OS Detection -->
+    <PropertyGroup>
+        <IsWindows>false</IsWindows>
+        <IsLinux>false</IsLinux>
+        <IsOSX>false</IsOSX>
+        <IsWindows Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</IsWindows>
+        <IsLinux Condition="$([MSBuild]::IsOSPlatform('Linux'))">true</IsLinux>
+        <IsOSX Condition="$([MSBuild]::IsOSPlatform('OSX'))">true</IsOSX>
+    </PropertyGroup>
+
+    <!-- // NOTE: Megadot is version 4.5.1, and the game won't load your .pck if the Godot version used is newer. -->
+
+    <!-- Windows -->
+    <PropertyGroup Condition="'$(IsWindows)' == 'true'">
+        <AutoSteamPath>$(registry:HKEY_CURRENT_USER\Software\Valve\Steam@SteamPath)\steamapps</AutoSteamPath>
+        <SteamLibraryPath Condition="Exists('$(AutoSteamPath)/common/Slay the Spire 2')">$(AutoSteamPath)</SteamLibraryPath>
+
+        <GodotPath>C:/megadot/MegaDot_v4.5.1-stable_mono_win64.exe</GodotPath>
+        <SteamLibraryPath Condition="'$(SteamLibraryPath)' == ''">C:/Program Files (x86)/Steam/steamapps</SteamLibraryPath>
+
+        <Sts2Path>$(SteamLibraryPath)/common/Slay the Spire 2</Sts2Path>
+        <ModsPath>$(Sts2Path)/mods/</ModsPath>
+        <Sts2DataDir>$(Sts2Path)/data_sts2_windows_x86_64</Sts2DataDir>
+    </PropertyGroup>
+
+    <!-- Linux -->
+    <PropertyGroup Condition="'$(IsLinux)' == 'true'">
+        <Sts2DataDir>$(MSBuildProjectDirectory)/libs</Sts2DataDir>
+        <ModsPath>$(MSBuildProjectDirectory)/dist/</ModsPath>
+    </PropertyGroup>
+
+    <!-- macOS -->
+    <PropertyGroup Condition="'$(IsOSX)' == 'true'">
+        <SteamLibraryPath Condition="'$(SteamLibraryPath)' == ''">$(HOME)/Library/Application Support/Steam/steamapps</SteamLibraryPath>
+        <GodotPath Condition="'$(GodotPath)' == ''">$(HOME)/Applications/Godot_mono.app/Contents/MacOS/Godot</GodotPath>
+
+        <Sts2Path>$(SteamLibraryPath)/common/Slay the Spire 2</Sts2Path>
+        <ModsPath>$(Sts2Path)/SlayTheSpire2.app/Contents/MacOS/mods/</ModsPath>
+        <Sts2DataDir>$(Sts2Path)/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_x86_64</Sts2DataDir>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>$(NoWarn);MSB3270</NoWarn>
+    </PropertyGroup>
+
+    <!-- DeployToMods gates the post-build copy + Godot .pck export targets.
+         Default false so a plain `dotnet build` is verify-only and does not
+         touch ModsPath (which on a configured machine points at the live
+         game install). The deploy.sh / redeploy.sh scripts pass
+         /p:DeployToMods=true to opt in. -->
+    <PropertyGroup>
+        <DeployToMods Condition="'$(DeployToMods)' == ''">false</DeployToMods>
+    </PropertyGroup>
+
+    <ItemGroup Condition="Exists('$(Sts2DataDir)')">
+        <Reference Include="0Harmony">
+            <HintPath>$(Sts2DataDir)/0Harmony.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="sts2">
+            <HintPath>$(Sts2DataDir)/sts2.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="ExitToDesktop/**" />
+        <EmbeddedResource Remove="ExitToDesktop/**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include=".gitignore" />
+        <None Include="ExitToDesktop.json" />
+        <None Include="project.godot" />
+        <None Include="ExitToDesktop/**" />
+    </ItemGroup>
+
+    <Target Name="CheckDependencyPaths">
+        <Error
+            Text=" Slay the Spire 2 data not found at path '$(Sts2DataDir)'"
+            Condition="'$(Sts2DataDir)' == '' or !Exists('$(Sts2DataDir)')" />
+        <Warning
+            Text=" Godot not found at path '$(GodotPath)' - .pck export will be skipped (button label will render untranslated)."
+            Condition="'$(GodotPath)' == '' or !Exists('$(GodotPath)')" />
+    </Target>
+
+    <Target Name="CopyToModsFolderOnBuild" AfterTargets="PostBuildEvent"
+            Condition="'$(DeployToMods)' == 'true'">
+        <Message Text="Copying .dll and manifest to mods folder." Importance="high" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsPath)$(MSBuildProjectName)/" />
+        <Copy SourceFiles="ExitToDesktop.json" DestinationFolder="$(ModsPath)$(MSBuildProjectName)/" />
+    </Target>
+
+    <!-- Godot .pck export — packages resources in ExitToDesktop/ subdir
+         (localization/<lang>/gameplay_ui.json) into ExitToDesktop.pck alongside
+         the DLL. Required for our localized button label to load: the game's
+         LocManager merges per-mod localization/*/<table>.json entries from
+         res://<mod_id>/localization/<lang>/<table>.json, which only exists when
+         shipped inside a .pck.
+
+         Needs Godot 4.5.1 (or MegaDot 4.5.1) on-disk — path set in local.props.
+         Runs the Godot binary headless with the "BasicExport" preset from
+         export_presets.cfg. Skipped (with a warning from CheckDependencyPaths)
+         if GodotPath isn't configured, so dev machines without Godot can still
+         iterate — the mod still loads, just with the English label everywhere.
+
+         Inputs/Outputs drive MSBuild's incremental-build check: when no input
+         is newer than the .pck on disk, the target is skipped. -->
+    <ItemGroup>
+        <GodotPckInput Include="project.godot;export_presets.cfg;ExitToDesktop/**/*" />
+    </ItemGroup>
+
+    <Target Name="GodotPublish" AfterTargets="CopyToModsFolderOnBuild"
+            Condition="'$(DeployToMods)' == 'true' and '$(GodotPath)' != '' and Exists('$(GodotPath)') and '$(IsInnerGodotExport)' != 'true'"
+            Inputs="@(GodotPckInput)"
+            Outputs="$(ModsPath)$(MSBuildProjectName)/$(MSBuildProjectName).pck">
+        <Message Text="Exporting Godot .pck to mods folder" Importance="high"/>
+        <Exec Command="&quot;$(GodotPath)&quot; --headless --export-pack &quot;BasicExport&quot; &quot;$(ModsPath)$(MSBuildProjectName)/$(MSBuildProjectName).pck&quot;"
+              EnvironmentVariables="IsInnerGodotExport=true;MSBUILDDISABLENODEREUSE=1"
+              ContinueOnError="WarnAndContinue"/>
+    </Target>
+
+    <Target Name="GodotPublishSkipped" AfterTargets="CopyToModsFolderOnBuild"
+            Condition="'$(DeployToMods)' == 'true' and ('$(GodotPath)' == '' or !Exists('$(GodotPath)'))">
+        <Message Text="Skipping Godot .pck export because GodotPath is not configured." Importance="high"/>
+    </Target>
+
+    <!-- Local overrides (gitignored). Copy local.props.example to local.props to configure. -->
+    <Import Project="local.props" Condition="Exists('local.props')" />
+</Project>

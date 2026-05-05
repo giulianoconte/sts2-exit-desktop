@@ -1,0 +1,11 @@
+{
+  "id": "ExitToDesktop",
+  "name": "ExitToDesktop",
+  "author": "Shoe",
+  "description": "Adds a 'Save and Exit to Desktop' button to the pause menu, skipping the main menu.",
+  "version": "v0.2.2",
+  "has_pck": true,
+  "has_dll": true,
+  "dependencies": [],
+  "affects_gameplay": false
+}

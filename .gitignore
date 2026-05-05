@@ -1,0 +1,27 @@
+# Release archives
+ExitToDesktop-*.zip
+
+# .NET build outputs
+**/bin/
+**/obj/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/
+
+# Rider / VS / VS Code
+.idea/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userprefs
+
+# Godot
+*.import
+ExitToDesktop/dist/
+
+# OS
+.DS_Store
+Thumbs.db
