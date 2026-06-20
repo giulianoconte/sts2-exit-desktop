@@ -1,0 +1,10 @@
+{
+  "title": "Exit to Desktop",
+  "description": "Adds a \"Save and Exit to Desktop\" button to the run pause menu, below \"Save and Quit\", with a confirmation prompt — close the game in one click instead of going back through the main menu. Doesn't affect gameplay.",
+  "visibility": "private",
+  "changeNote": "",
+  "tags": [],
+  "dependencies": [],
+  "minBranch": null,
+  "maxBranch": null
+}
