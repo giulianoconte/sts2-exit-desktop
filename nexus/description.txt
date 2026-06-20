@@ -5,6 +5,7 @@ A simple mod that adds a "Save and Exit to Desktop" button below the "Save and Q
 My Mods
 - SlayTheStats: https://www.nexusmods.com/slaythespire2/mods/349 - stats tracking
 - ExitToDesktop: https://www.nexusmods.com/slaythespire2/mods/553 - qol
+- RememberCardSort: https://www.nexusmods.com/slaythespire2/mods/801 - qol
 - MoreTino: https://www.nexusmods.com/slaythespire2/mods/753 - memes
 
 Translations
@@ -20,4 +21,4 @@ The "Save and Exit to Desktop" button label is localized in-game into 12 languag
 - Polski: Prosty mod, który dodaje przycisk „Zapisz i wyjdź na pulpit" pod przyciskiem „Zapisz i wyjdź" podczas rozgrywki. Przed wyjściem wyświetla prośbę o potwierdzenie. Stworzyłem ten mod, aby zaoszczędzić czas podczas tworzenia modów, ponieważ często otwieram i zamykam grę.
 - Português (Brasil): Um mod simples que adiciona um botão "Salvar e sair do jogo" abaixo do botão "Salvar e sair" durante uma run. Pede confirmação antes de sair. Eu o fiz para economizar tempo ao desenvolver mods, já que abro e fecho o jogo com frequência.
 - ไทย: ม็อดเรียบง่ายที่เพิ่มปุ่ม "บันทึกและออกไปยังเดสก์ท็อป" ใต้ปุ่ม "บันทึกและออก" ระหว่างการเล่น โดยจะมีการยืนยันก่อนออกจากเกม ผมทำม็อดนี้ขึ้นมาเพื่อประหยัดเวลาตอนพัฒนาม็อด เพราะต้องเปิดและปิดเกมบ่อยครั้ง
-- Türkçe: Bir koşu sırasında "Kaydet ve çık" düğmesinin altına "Kaydet ve masaüstüne çık" düğmesi ekleyen basit bir mod. Çıkmadan önce onay ister. Bu modu, mod geliştirirken oyunu sık sık açıp kapadığım için zaman kazanmak amacıyla yaptım.
+- Türkçe: Bir koşu sırasında "Kaydet ve çık" düğmesinin altına "Kaydet ve masaüstüne çık" düğmesi ekleyen basit bir mod. Çıkmadan önce onay ister. Bu modu, mod geliştirirken oyunu sık sık açıp kapadığım için zaman kazanmak amacıyla yaptım. 
